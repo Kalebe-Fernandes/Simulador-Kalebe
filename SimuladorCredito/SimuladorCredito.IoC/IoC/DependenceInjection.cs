@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Asp.Versioning;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SimuladorCredito.Infraestrututra.Context;
@@ -15,6 +16,18 @@ namespace SimuladorCredito.IoC.IoC
             // Register other services, repositories, etc.
             // services.AddScoped<IProductRepository, ProductRepository>();
             // services.AddScoped<IProductService, ProductService>();
+
+            services.AddApiVersioning(options =>
+            {
+                options.ReportApiVersions = true;
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.DefaultApiVersion = new ApiVersion(1, 0);
+                options.ApiVersionReader = ApiVersionReader.Combine(new UrlSegmentApiVersionReader());
+            }).AddApiExplorer(options =>
+            {
+                options.GroupNameFormat = "'v'VVV";
+                options.SubstituteApiVersionInUrl = true;
+            });
         }
     }
 }
