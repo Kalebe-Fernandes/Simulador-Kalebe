@@ -12,6 +12,11 @@ namespace SimuladorCredito.Infraestrututra.EntitiesConfigurations
             builder.Property(m => m.Name)
                 .IsRequired()
                 .HasMaxLength(100);
+
+            builder.HasData(
+                new Modality { Id = 1, Name = "Pré-Fixado", CreatedAt = DateTime.Now },
+                new Modality { Id = 2, Name = "Pós-Fixado", CreatedAt = DateTime.Now }
+            );
         }
     }
 }
