@@ -5,8 +5,17 @@ using SimuladorCredito.Infraestrututra.Repositories.UnitOfWork;
 
 namespace SimuladorCredito.Application.Services
 {
-    public class SegmentService(IUnitOfWork unitOfWork, IMapper mapper) : Service<SegmentDTO>(unitOfWork, mapper), ISegmentService
+    public class SegmentService(IUnitOfWork unitOfWork, IMapper mapper) : ISegmentService
     {
+        protected readonly IUnitOfWork _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        protected readonly IMapper _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+
+        public async Task<IEnumerable<SegmentDTO>> GetAllAsync()
+        {
+            var segments = await _unitOfWork.SegmentRepository.GetAllAsync();
+            return _mapper.Map<IEnumerable<SegmentDTO>>(segments);
+        }
+
         public async Task<SegmentDTO> GetSegmentByPersonTypeAsync(int personTypeId, decimal minimumIncome)
         {
             if (personTypeId <= 0)
@@ -15,8 +24,13 @@ namespace SimuladorCredito.Application.Services
             }
 
             var segments = await _unitOfWork.SegmentRepository.GetSegmentByPersonTypeAsync(personTypeId);
-            var segment = segments.LastOrDefault(s => s.MinimumIncome >= minimumIncome);
+            var segment = segments.Where(s => s.MinimumIncome <= minimumIncome).LastOrDefault();
             return _mapper.Map<SegmentDTO>(segment);
+        }
+
+        public string Ping()
+        {
+            return _unitOfWork.Ping();
         }
     }
 }

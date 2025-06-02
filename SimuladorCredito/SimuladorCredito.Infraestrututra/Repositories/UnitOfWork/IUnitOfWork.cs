@@ -4,7 +4,6 @@ namespace SimuladorCredito.Infraestrututra.Repositories.UnitOfWork
 {
     public interface IUnitOfWork
     {
-        IRepository<T> Repository<T>() where T : class;
         IPersonTypeRepository PersonTypeRepository { get; }
         IProductRepository ProductRepository { get; }
         IRateRepository RateRepository { get; }

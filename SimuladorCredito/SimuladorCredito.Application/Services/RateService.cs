@@ -2,16 +2,19 @@
 using SimuladorCredito.Application.DTOs;
 using SimuladorCredito.Application.Services.Interfaces;
 using SimuladorCredito.Infraestrututra.Repositories.UnitOfWork;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SimuladorCredito.Application.Services
 {
-    public class RateService(IUnitOfWork unitOfWork, IMapper mapper) : Service<RateDTO>(unitOfWork, mapper), IRateService
+    public class RateService(IUnitOfWork unitOfWork, IMapper mapper) : IRateService
     {
+        protected readonly IUnitOfWork _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        protected readonly IMapper _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+
+        public async Task<IEnumerable<RateDTO>> GetAllAsync()
+        {
+            return await _unitOfWork.RateRepository.GetAllAsync().ContinueWith(task => _mapper.Map<IEnumerable<RateDTO>>(task.Result));
+        }
+
         public async Task<RateDTO> GetRateByAsync(int personTypeId, int modalityId, int productId, int segmentId)
         {
             if (personTypeId <= 0)
@@ -33,6 +36,11 @@ namespace SimuladorCredito.Application.Services
 
             var rate = await _unitOfWork.RateRepository.GetRateByAsync(personTypeId, modalityId, productId, segmentId);
             return _mapper.Map<RateDTO>(rate);
+        }
+
+        public string Ping()
+        {
+            return _unitOfWork.Ping();
         }
     }
 }

@@ -5,7 +5,7 @@ namespace SimuladorCredito.WebApi.Controllers
 {
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
-    [Produces("aplication/json")]
+    [Produces("application/json")]
     [ApiConventionType(typeof(DefaultApiConventions))]
     public class PersonTypeController(IPersonTypeService personTypeService) : ControllerBase
     {

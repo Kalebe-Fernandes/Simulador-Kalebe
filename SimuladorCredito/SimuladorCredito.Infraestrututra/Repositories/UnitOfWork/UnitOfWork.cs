@@ -6,7 +6,6 @@ namespace SimuladorCredito.Infraestrututra.Repositories.UnitOfWork
     public class UnitOfWork(ApplicationDbContext context) : IUnitOfWork
     {
         private readonly ApplicationDbContext _context = context;
-        private readonly Dictionary<Type, object> _repositories = [];
 
         private IPersonTypeRepository _personRepository;
         public IPersonTypeRepository PersonTypeRepository => _personRepository ?? new PersonTypeRepository(_context);
@@ -22,19 +21,6 @@ namespace SimuladorCredito.Infraestrututra.Repositories.UnitOfWork
 
         private ISegmentRepository _segmentRepository;
         public ISegmentRepository SegmentRepository => _segmentRepository ?? new SegmentRepository(_context);
-
-        public IRepository<T> Repository<T>() where T : class
-        {
-            var type = typeof(T);
-
-            if (!_repositories.TryGetValue(type, out object? value))
-            {
-                value = new Repository<T>(_context);
-                _repositories[type] = value;
-            }
-
-            return (Repository<T>)value;
-        }
 
         public async Task<int> Commit()
         {

@@ -27,7 +27,6 @@ namespace SimuladorCredito.IoC.IoC
             services.AddScoped<IRateRepository, RateRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            services.AddScoped(typeof(IService<>), typeof(Service<>));
             services.AddScoped<IPersonTypeService, PersonTypeService>();
             services.AddScoped<IModalityService, ModalityService>();
             services.AddScoped<IProductService, ProductService>();
