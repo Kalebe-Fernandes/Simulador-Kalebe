@@ -12,10 +12,5 @@ namespace SimuladorCredito.Infraestrututra.Repositories
         {
             return await _context.Set<T>().ToListAsync();
         }
-
-        public string Ping()
-        {
-            return "Pong";
-        }
     }
 }

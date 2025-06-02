@@ -33,10 +33,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\SimuladorCredito.IoC\SimuladorCredito.IoC.csproj" />
   </ItemGroup>
 

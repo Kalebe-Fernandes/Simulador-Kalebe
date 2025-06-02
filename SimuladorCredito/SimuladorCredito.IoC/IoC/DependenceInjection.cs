@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SimuladorCredito.Application.Mappers;
+using SimuladorCredito.Application.Services;
+using SimuladorCredito.Application.Services.Interfaces;
 using SimuladorCredito.Infraestrututra.Context;
 using SimuladorCredito.Infraestrututra.Repositories;
 using SimuladorCredito.Infraestrututra.Repositories.Interfaces;
@@ -17,7 +19,7 @@ namespace SimuladorCredito.IoC.IoC
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"), 
                                                         b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
-            // Register other services, repositories, etc.
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IPersonTypeRepository, PersonTypeRepository>();
             services.AddScoped<IModalityRepository, ModalityRepository>();
@@ -25,7 +27,12 @@ namespace SimuladorCredito.IoC.IoC
             services.AddScoped<IRateRepository, RateRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            // services.AddScoped<IProductService, ProductService>();
+            services.AddScoped(typeof(IService<>), typeof(Service<>));
+            services.AddScoped<IPersonTypeService, PersonTypeService>();
+            services.AddScoped<IModalityService, ModalityService>();
+            services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<ISegmentService, SegmentService>();
+            services.AddScoped<IRateService, RateService>();
 
             services.AddAutoMapper(typeof(DomainToDTOMappingProfile));
 
