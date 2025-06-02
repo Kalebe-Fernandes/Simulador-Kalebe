@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+builder.Services.AddEndpointsApiExplorer();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddSwaggerGen(options =>
@@ -19,17 +20,13 @@ builder.Services.AddSwaggerGen(options =>
         Description = "API for credit simulation.",
         Contact = new Microsoft.OpenApi.Models.OpenApiContact
         {
-            Name = "Kalebe Fernandes",
-            Email = "kallfrenandes@hotmail.com"
+            Name = "Kalebe Fernandes"
         }
     });
 
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    if (File.Exists(xmlPath))
-    {
-        options.IncludeXmlComments(xmlPath);
-    }
+    options.IncludeXmlComments(xmlPath);
 });
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Logging.AddProvider(new CustomLoggerProvider(new CustomLoggerProviderConfiguration

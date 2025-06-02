@@ -6,7 +6,7 @@ namespace SimuladorCredito.Infraestrututra.Repositories.UnitOfWork
     public class UnitOfWork(ApplicationDbContext context) : IUnitOfWork
     {
         private readonly ApplicationDbContext _context = context;
-        private readonly Dictionary<Type, object> _repositories;
+        private readonly Dictionary<Type, object> _repositories = [];
 
         private IPersonTypeRepository _personRepository;
         public IPersonTypeRepository PersonTypeRepository => _personRepository ?? new PersonTypeRepository(_context);
