@@ -1,3 +1,4 @@
+using SimuladorCredito.Application.Logging;
 using SimuladorCredito.IoC.IoC;
 using System.Reflection;
 using System.Text.Json.Serialization;
@@ -31,6 +32,10 @@ builder.Services.AddSwaggerGen(options =>
     }
 });
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Logging.AddProvider(new CustomLoggerProvider(new CustomLoggerProviderConfiguration
+{
+    LogLevel = LogLevel.Information
+}));
 
 var app = builder.Build();
 
@@ -42,9 +47,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
