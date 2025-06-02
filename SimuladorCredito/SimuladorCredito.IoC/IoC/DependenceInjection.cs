@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SimuladorCredito.Infraestrututra.Context;
+using SimuladorCredito.Infraestrututra.Repositories;
+using SimuladorCredito.Infraestrututra.Repositories.Interfaces;
+using SimuladorCredito.Infraestrututra.Repositories.UnitOfWork;
 
 namespace SimuladorCredito.IoC.IoC
 {
@@ -14,7 +17,13 @@ namespace SimuladorCredito.IoC.IoC
                                                         b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
             // Register other services, repositories, etc.
-            // services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IPersonTypeRepository, PersonTypeRepository>();
+            services.AddScoped<IModalityRepository, ModalityRepository>();
+            services.AddScoped<ISegmentRepository, SegmentRepository>();
+            services.AddScoped<IRateRepository, RateRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
             // services.AddScoped<IProductService, ProductService>();
 
             services.AddApiVersioning(options =>
