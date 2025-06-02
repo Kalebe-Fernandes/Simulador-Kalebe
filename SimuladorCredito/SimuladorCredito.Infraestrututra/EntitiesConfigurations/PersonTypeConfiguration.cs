@@ -14,8 +14,8 @@ namespace SimuladorCredito.Infraestrututra.EntitiesConfigurations
                 .HasMaxLength(100);
 
             builder.HasData(
-                new PersonType { Id = 1, Name = "Pessoa Física", CreatedAt = DateTime.Now },
-                new PersonType { Id = 2, Name = "Pessoa Jurídica", CreatedAt = DateTime.Now }
+                new PersonType { Id = 1, Name = "Pessoa Física", CreatedAt = new DateTime(2025, 06, 02) },
+                new PersonType { Id = 2, Name = "Pessoa Jurídica", CreatedAt = new DateTime(2025, 06, 02) }
             );
         }
     }
