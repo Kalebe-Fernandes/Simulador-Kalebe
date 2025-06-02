@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SimuladorCredito.Application.Mappers;
 using SimuladorCredito.Infraestrututra.Context;
 using SimuladorCredito.Infraestrututra.Repositories;
 using SimuladorCredito.Infraestrututra.Repositories.Interfaces;
@@ -25,6 +26,8 @@ namespace SimuladorCredito.IoC.IoC
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // services.AddScoped<IProductService, ProductService>();
+
+            services.AddAutoMapper(typeof(DomainToDTOMappingProfile));
 
             services.AddApiVersioning(options =>
             {
