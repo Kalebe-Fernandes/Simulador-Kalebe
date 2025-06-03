@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 
 import "./App.css";
@@ -13,9 +13,11 @@ export default function Simulador() {
   const [produtos, setProdutos] = useState([]);
   const [modalidades, setModalidades] = useState([]);
   const [taxa, setTaxa] = useState(null);
+
   const [erro, setErro] = useState("");
   const [mensagensCampos, setMensagensCampos] = useState({});
-  const [carregando, setCarregando] = useState(false);
+  const [carregandoSegmento, setCarregandoSegmento] = useState(false);
+  const [carregandoTaxa, setCarregandoTaxa] = useState(false);
 
   const nomesSegmentos = {
     PF1: "Pessoa Física - Nível 1",
@@ -58,7 +60,61 @@ export default function Simulador() {
     }
   }, [tipoPessoa]);
 
+  const debounceTimer = useRef();
+
+  const handleRendaChange = (e) => {
+    const valorSomenteNum = e.target.value.replace(/\D/g, "");
+    if (valorSomenteNum.length > 12) return;
+
+    const valorFormatado = formatarMoeda(valorSomenteNum);
+    setRenda(valorFormatado);
+
+    setMensagensCampos((prev) => ({ ...prev, renda: undefined }));
+
+    clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      buscarSegmento(valorSomenteNum);
+    }, 600);
+  };
+
+  const buscarSegmento = async (valor = null) => {
+    const valorNumerico =
+      (valor !== null ? Number(valor) : Number(renda.replace(/\D/g, ""))) / 100;
+
+    if (!tipoPessoa || !valorNumerico) {
+      setSegmento("");
+      return null;
+    }
+
+    try {
+      setCarregandoSegmento(true);
+      const resp = await axios.get(
+        `https://localhost:44328/api/v1/Segment/GetSegmentByPersonTypeAsync/${tipoPessoa}/${valorNumerico}`
+      );
+
+      const seg =
+        typeof resp.data === "string" ? resp.data : Object.keys(resp.data)[0];
+
+      if (!seg) {
+        setSegmento("");
+        exibirErro("Segmento não identificado.");
+        return null;
+      }
+
+      setSegmento(seg);
+      return seg;
+    } catch {
+      setSegmento("");
+      exibirErro("Erro ao buscar segmento.");
+      return null;
+    } finally {
+      setCarregandoSegmento(false);
+    }
+  };
+
   const buscarTaxa = async () => {
+    clearTimeout(debounceTimer.current);
+
     const camposInvalidos = {};
     const valorNumerico = Number(renda.replace(/\D/g, "")) / 100;
 
@@ -68,48 +124,30 @@ export default function Simulador() {
     if (!valorNumerico || isNaN(valorNumerico) || valorNumerico <= 0)
       camposInvalidos.renda = "Informe uma renda válida.";
 
-    if (Object.keys(camposInvalidos).length > 0) {
+    if (Object.keys(camposInvalidos).length) {
       setMensagensCampos(camposInvalidos);
       return;
     }
 
     setMensagensCampos({});
-    setCarregando(true);
-    setTaxa(null);
-    setSegmento("");
 
+    const segObtido = await buscarSegmento();
+    if (!segObtido) {
+      setMensagensCampos({ segmento: "Segmento não calculado ainda." });
+      return;
+    }
+
+    setCarregandoTaxa(true);
     try {
-      const respSegmento = await axios.get(
-        `https://localhost:44328/api/v1/Segment/GetSegmentByPersonTypeAsync/${tipoPessoa}/${valorNumerico}`
-      );
-
-      console.log("Segmento: ", respSegmento.data);
-      console.log("Segmento atual (estado):", segmento);
-
-      if (!respSegmento.data) {
-        setSegmento("");
-        exibirErro("Segmento não identificado.");
-        setCarregando(false);
-        return;
-      }
-
-      setSegmento(respSegmento.data);
-      console.log("Segmento: ", respSegmento.data);
-      console.log("Segmento atual (estado):", segmento);
-
-      const taxaResponse = await axios.get(
+      const resp = await axios.get(
         `https://localhost:44328/api/v1/Rate/GetRateByAsync/${tipoPessoa}/${modalidade}/${produto}/${segmento}`
       );
-
-      if (!taxaResponse.data || typeof taxaResponse.data !== "number") {
-        throw new Error("Resposta inválida da API");
-      }
-
-      setTaxa(taxaResponse.data);
-    } catch (error) {
-      exibirErro("Erro ao buscar taxa ou segmento.");
+      if (!resp.data || typeof resp.data !== "number") throw new Error();
+      setTaxa(resp.data);
+    } catch {
+      exibirErro("Erro ao buscar taxa.");
     } finally {
-      setCarregando(false);
+      setCarregandoTaxa(false);
     }
   };
 
@@ -118,23 +156,13 @@ export default function Simulador() {
     setTimeout(() => setErro(""), 5000);
   };
 
-  const apenasNumeros = (valor) => valor.replace(/\D/g, "");
-
   const formatarMoeda = (valor) => {
     const inteiro = valor.slice(0, -2) || "0";
     const decimal = valor.slice(-2).padStart(2, "0");
-    const comPonto = `${parseInt(inteiro, 10)}.${decimal}`;
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(comPonto);
-  };
-
-  const handleRendaChange = (e) => {
-    const valor = apenasNumeros(e.target.value);
-    if (valor.length <= 12) {
-      setRenda(formatarMoeda(valor));
-    }
+    }).format(`${parseInt(inteiro, 10)}.${decimal}`);
   };
 
   const resetarFormulario = () => {
@@ -148,6 +176,13 @@ export default function Simulador() {
     setErro("");
     setMensagensCampos({});
   };
+
+  const camposPreenchidos =
+    tipoPessoa &&
+    modalidade &&
+    produto &&
+    renda &&
+    Number(renda.replace(/\D/g, "")) > 0;
 
   return (
     <div className="container">
@@ -197,7 +232,6 @@ export default function Simulador() {
             <select
               value={produto}
               onChange={(e) => setProduto(e.target.value)}
-              disabled={!tipoPessoa}
             >
               <option value="">
                 {tipoPessoa
@@ -219,9 +253,9 @@ export default function Simulador() {
             <label>Renda Faturamento Mensal *</label>
             <input
               type="text"
-              placeholder="R$ 0,00"
               value={renda}
               onChange={handleRendaChange}
+              placeholder="R$ 0,00"
             />
             {mensagensCampos.renda && (
               <p className="mensagem-erro">{mensagensCampos.renda}</p>
@@ -229,10 +263,14 @@ export default function Simulador() {
           </div>
 
           <div className="botoes">
-            <button onClick={buscarTaxa} disabled={carregando} className="btn">
-              {carregando ? "Calculando..." : "Calcular Taxa"}
+            <button
+              className="btn"
+              onClick={buscarTaxa}
+              disabled={!camposPreenchidos || carregandoTaxa}
+            >
+              {carregandoTaxa ? "Calculando..." : "Calcular Taxa"}
             </button>
-            <button onClick={resetarFormulario} className="btn btn-limpar">
+            <button className="btn btn-limpar" onClick={resetarFormulario}>
               Limpar
             </button>
           </div>
@@ -241,35 +279,35 @@ export default function Simulador() {
         <div className="coluna-direita">
           <div className="resultado">
             <h2>Resultado da Simulação</h2>
-            {segmento ? (
-              <p>
-                <strong>Segmento:</strong>{" "}
-                {nomesSegmentos[segmento] || segmento}
+            {carregandoSegmento && (
+              <p className="mensagem-auxiliar">Buscando segmento...</p>
+            )}
+            {!carregandoSegmento && segmento && (
+              <p className="mensagem-auxiliar">
+                Segmento: {nomesSegmentos[segmento]}
               </p>
-            ) : (
+            )}
+            {!carregandoSegmento && !segmento && (
               <p className="mensagem-auxiliar">
                 Informe uma renda válida para identificar o segmento
               </p>
             )}
-            {taxa !== null ? (
-              <p>
-                <strong>Taxa:</strong> {taxa.toFixed(2)}%
-              </p>
-            ) : (
-              <p className="mensagem-auxiliar">
-                Preencha todos os campos obrigatórios e clique em 'Calcular
-                Taxa'
-              </p>
+            {renda && (
+              <p className="mensagem-auxiliar">Renda informada: {renda}</p>
             )}
+            <p className="mensagem-auxiliar">
+              {taxa !== null
+                ? `Taxa encontrada: ${taxa.toFixed(2)}%`
+                : "Preencha todos os campos obrigatórios e clique em 'Calcular Taxa'"}
+            </p>
           </div>
+          <p className="nota">
+            * Campos obrigatórios
+            <br />A taxa é calculada com base no segmento, modalidade e produto
+            selecionados.
+          </p>
         </div>
       </div>
-
-      <p className="nota">* Campos obrigatórios</p>
-      <p className="nota">
-        A taxa é calculada com base no segmento, modalidade e produto
-        selecionados.
-      </p>
     </div>
   );
 }
