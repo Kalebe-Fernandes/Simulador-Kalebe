@@ -19,7 +19,16 @@ namespace SimuladorCredito.Application.Services
         public async Task<SegmentDTO> GetSegmentByPersonTypeAsync(string personTypeId, decimal minimumIncome)
         {
             var productService = new ProductService(_unitOfWork, _mapper);
-            var personType = await productService.GetPersonTypeForProduct(personTypeId);
+
+            PersonTypeDTO personType;
+            try
+            {
+                personType = await productService.GetPersonTypeForProduct(personTypeId);
+            }
+            catch (KeyNotFoundException)
+            {
+                return null;
+            }
 
             var segments = await _unitOfWork.SegmentRepository.GetSegmentByPersonTypeAsync(personType.Id);
             var segment = segments.Where(s => s.MinimumIncome <= minimumIncome).LastOrDefault();

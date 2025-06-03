@@ -27,10 +27,18 @@ namespace SimuladorCredito.WebApi.Controllers
         [HttpGet("GetRateByAsync/{personTypeName}/{modalityName}/{productName}/{segmentName}")]
         public async Task<ActionResult<float>> GetRateByAsync(string personTypeName, string modalityName, string productName, string segmentName)
         {
-            var rateDTO = await _rateService.GetRateByAsync(personTypeName, modalityName, productName, segmentName);
-            if (rateDTO == null)
+            RateDTO rateDTO;
+            try
             {
-                return NotFound();
+                rateDTO = await _rateService.GetRateByAsync(personTypeName, modalityName, productName, segmentName);
+                if (rateDTO == null)
+                {
+                    return NotFound();
+                }
+            }
+            catch
+            {
+                return NotFound("Taxa não encontrada.");
             }
 
             return Ok(rateDTO.Value);

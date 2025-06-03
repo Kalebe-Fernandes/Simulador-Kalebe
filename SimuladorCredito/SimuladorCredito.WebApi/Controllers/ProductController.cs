@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SimuladorCredito.Application.DTOs;
 using SimuladorCredito.Application.Services.Interfaces;
 
 namespace SimuladorCredito.WebApi.Controllers
@@ -28,11 +29,19 @@ namespace SimuladorCredito.WebApi.Controllers
         [Route("GetByPersonType/{personTypeName}")]
         public async Task<ActionResult<IEnumerable<string>>> GetByPersonTypeAsync(string personTypeName)
         {
-            var personType = await _productService.GetPersonTypeForProduct(personTypeName);
-            var products = await _productService.GetProductByPersonTypeAsync(personType.Id);
-            if (products == null || !products.Any())
+            IEnumerable<ProductDTO> products;
+            try
             {
-                return NotFound();
+                var personType = await _productService.GetPersonTypeForProduct(personTypeName);
+                products = await _productService.GetProductByPersonTypeAsync(personType.Id);
+                if (products == null || !products.Any())
+                {
+                    return NotFound();
+                }
+            }
+            catch
+            {
+                return NotFound("Tipo de Pessoa ou produto não encontrado.");
             }
 
             var productNames = products.Select(p => p.Name).ToList();
