@@ -25,10 +25,11 @@ namespace SimuladorCredito.WebApi.Controllers
         }
 
         [HttpGet]
-        [Route("GetByPersonType/{personTypeId}")]
-        public async Task<ActionResult<IEnumerable<string>>> GetByPersonTypeAsync(int personTypeId)
+        [Route("GetByPersonType/{personTypeName}")]
+        public async Task<ActionResult<IEnumerable<string>>> GetByPersonTypeAsync(string personTypeName)
         {
-            var products = await _productService.GetProductByPersonTypeAsync(personTypeId);
+            var personType = await _productService.GetPersonTypeForProduct(personTypeName);
+            var products = await _productService.GetProductByPersonTypeAsync(personType.Id);
             if (products == null || !products.Any())
             {
                 return NotFound();

@@ -31,13 +31,19 @@ export default function Simulador() {
   useEffect(() => {
     axios
       .get("https://localhost:44328/api/v1/Modality")
-      .then((res) => setModalidades(res.data))
+      .then((res) => {
+        console.log("Modalidades:", res.data);
+        setModalidades(res.data);
+      })
       .catch(() => exibirErro("Erro ao carregar modalidades."));
 
     axios
       .get("https://localhost:44328/api/v1/PersonType")
-      .then((res) => setTiposPessoa(res.data))
-      .catch(() => exibirErro("Erro ao carregar tipos de pessoa."));
+      .then((res) => {
+        console.log("Tipos de Pessoa:", res.data);
+        setTiposPessoa(res.data);
+      })
+      .catch((erro) => exibirErro(`Erro ao carregar tipos de pessoa.`));
   }, []);
 
   useEffect(() => {

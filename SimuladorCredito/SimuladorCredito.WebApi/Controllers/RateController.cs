@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SimuladorCredito.Application.DTOs;
 using SimuladorCredito.Application.Services.Interfaces;
-using SimuladorCredito.Domain.Entities;
 
 namespace SimuladorCredito.WebApi.Controllers
 {
@@ -26,10 +24,10 @@ namespace SimuladorCredito.WebApi.Controllers
             return Ok(rates);
         }
 
-        [HttpGet("GetRateByAsync/{personTypeId}/{modalityId}/{productId}/{segmentId}")]
-        public async Task<ActionResult<float>> GetRateByAsync(int personTypeId, int modalityId, int productId, int segmentId)
+        [HttpGet("GetRateByAsync/{personTypeName}/{modalityName}/{productName}/{segmentName}")]
+        public async Task<ActionResult<float>> GetRateByAsync(string personTypeName, string modalityName, string productName, string segmentName)
         {
-            var rateDTO = await _rateService.GetRateByAsync(personTypeId, modalityId, productId, segmentId);
+            var rateDTO = await _rateService.GetRateByAsync(personTypeName, modalityName, productName, segmentName);
             if (rateDTO == null)
             {
                 return NotFound();

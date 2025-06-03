@@ -4,6 +4,6 @@ namespace SimuladorCredito.Application.Services.Interfaces
 {
     public interface IRateService : IService<RateDTO>
     {
-        Task<RateDTO> GetRateByAsync(int personTypeId, int modalityId, int productId, int segmentId);
+        Task<RateDTO> GetRateByAsync(string personTypeName, string modalityName, string productName, string segmentName);
     }
 }

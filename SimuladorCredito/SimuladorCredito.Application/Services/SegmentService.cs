@@ -16,14 +16,12 @@ namespace SimuladorCredito.Application.Services
             return _mapper.Map<IEnumerable<SegmentDTO>>(segments);
         }
 
-        public async Task<SegmentDTO> GetSegmentByPersonTypeAsync(int personTypeId, decimal minimumIncome)
+        public async Task<SegmentDTO> GetSegmentByPersonTypeAsync(string personTypeId, decimal minimumIncome)
         {
-            if (personTypeId <= 0)
-            {
-                throw new ArgumentException("Person type ID must be greater than zero.", nameof(personTypeId));
-            }
+            var productService = new ProductService(_unitOfWork, _mapper);
+            var personType = await productService.GetPersonTypeForProduct(personTypeId);
 
-            var segments = await _unitOfWork.SegmentRepository.GetSegmentByPersonTypeAsync(personTypeId);
+            var segments = await _unitOfWork.SegmentRepository.GetSegmentByPersonTypeAsync(personType.Id);
             var segment = segments.Where(s => s.MinimumIncome <= minimumIncome).LastOrDefault();
             return _mapper.Map<SegmentDTO>(segment);
         }

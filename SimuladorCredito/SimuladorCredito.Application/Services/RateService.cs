@@ -15,27 +15,58 @@ namespace SimuladorCredito.Application.Services
             return await _unitOfWork.RateRepository.GetAllAsync().ContinueWith(task => _mapper.Map<IEnumerable<RateDTO>>(task.Result));
         }
 
-        public async Task<RateDTO> GetRateByAsync(int personTypeId, int modalityId, int productId, int segmentId)
+        public async Task<RateDTO> GetRateByAsync(string personTypeName, string modalityName, string productName, string segmentName)
         {
-            if (personTypeId <= 0)
+            if (string.IsNullOrWhiteSpace(personTypeName) || string.IsNullOrWhiteSpace(modalityName) ||
+                string.IsNullOrWhiteSpace(productName) || string.IsNullOrWhiteSpace(segmentName))
             {
-                throw new ArgumentException("Person type ID must be greater than zero.", nameof(personTypeId));
-            }
-            if (modalityId <= 0)
-            {
-                throw new ArgumentException("Modality ID must be greater than zero.", nameof(modalityId));
-            }
-            if (productId <= 0)
-            {
-                throw new ArgumentException("Product ID must be greater than zero.", nameof(productId));
-            }
-            if (segmentId <= 0)
-            {
-                throw new ArgumentException("Segment ID must be greater than zero.", nameof(segmentId));
+                throw new ArgumentException("All parameters must be provided and cannot be null or empty.");
             }
 
-            var rate = await _unitOfWork.RateRepository.GetRateByAsync(personTypeId, modalityId, productId, segmentId);
+            var productService = new ProductService(_unitOfWork, _mapper);
+            var personType = await productService.GetPersonTypeForProduct(personTypeName);
+            var modality = await GetModalityForRate(modalityName);
+            var product = await GetProductForRate(productName);
+            var segment = await GetSegmentForRate(segmentName);
+
+            var rate = await _unitOfWork.RateRepository.GetRateByAsync(personType.Id, modality, product, segment);
             return _mapper.Map<RateDTO>(rate);
+        }
+
+        private async Task<int> GetModalityForRate(string modalityName)
+        {
+            var modalities = await _unitOfWork.ModalityRepository.GetAllAsync();
+            var modality = modalities.FirstOrDefault(m => m.Name.Equals(modalityName, StringComparison.OrdinalIgnoreCase));
+            if (modality == null)
+            {
+                throw new ArgumentException($"Modality '{modalityName}' not found.");
+            }
+
+            return modality.Id;
+        }
+
+        private async Task<int> GetSegmentForRate(string segmentName)
+        {
+            var segments = await _unitOfWork.SegmentRepository.GetAllAsync();
+            var segment = segments.FirstOrDefault(m => m.Name.Equals(segmentName, StringComparison.OrdinalIgnoreCase));
+            if (segment == null)
+            {
+                throw new ArgumentException($"Modality '{segmentName}' not found.");
+            }
+
+            return segment.Id;
+        }
+
+        private async Task<int> GetProductForRate(string productName)
+        {
+            var products = await _unitOfWork.ProductRepository.GetAllAsync();
+            var product = products.FirstOrDefault(m => m.Name.Equals(productName, StringComparison.OrdinalIgnoreCase));
+            if (product == null)
+            {
+                throw new ArgumentException($"Modality '{productName}' not found.");
+            }
+
+            return product.Id;
         }
 
         public string Ping()

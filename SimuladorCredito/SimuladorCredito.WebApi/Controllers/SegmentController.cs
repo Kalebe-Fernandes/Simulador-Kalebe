@@ -24,10 +24,10 @@ namespace SimuladorCredito.WebApi.Controllers
             return Ok(segmentNames);
         }
 
-        [HttpGet("GetSegmentByPersonTypeAsync/{personTypeId}/{minimumIncome}")]
-        public async Task<ActionResult<IEnumerable<string>>> GetSegmentByPersonTypeAsync(int personTypeId, int minimumIncome)
+        [HttpGet("GetSegmentByPersonTypeAsync/{personTypeName}/{minimumIncome}")]
+        public async Task<ActionResult<IEnumerable<string>>> GetSegmentByPersonTypeAsync(string personTypeName, decimal minimumIncome)
         {
-            var segment = await _segmentService.GetSegmentByPersonTypeAsync(personTypeId, minimumIncome);
+            var segment = await _segmentService.GetSegmentByPersonTypeAsync(personTypeName, minimumIncome);
             if (segment == null)
             {
                 return NotFound();

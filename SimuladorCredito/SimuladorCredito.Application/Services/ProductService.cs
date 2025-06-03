@@ -16,6 +16,23 @@ namespace SimuladorCredito.Application.Services
             return _mapper.Map<IEnumerable<ProductDTO>>(products);
         }
 
+        public async Task<PersonTypeDTO> GetPersonTypeForProduct(string personTypeName)
+        {
+            if (string.IsNullOrWhiteSpace(personTypeName))
+            {
+                throw new ArgumentException("Person type name cannot be null or empty.", nameof(personTypeName));
+            }
+
+            var personTypes = await _unitOfWork.PersonTypeRepository.GetAllAsync();
+            var personType = personTypes.FirstOrDefault(pt => pt.Name.Equals(personTypeName, StringComparison.OrdinalIgnoreCase));
+            if (personType == null)
+            {
+                throw new KeyNotFoundException($"Person type '{personTypeName}' not found.");
+            }
+
+            return _mapper.Map<PersonTypeDTO>(personType);
+        }
+
         public async Task<IEnumerable<ProductDTO>> GetProductByPersonTypeAsync(int personTypeId)
         {
             if (personTypeId <= 0)
