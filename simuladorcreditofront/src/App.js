@@ -31,19 +31,13 @@ export default function Simulador() {
   useEffect(() => {
     axios
       .get("https://localhost:44328/api/v1/Modality")
-      .then((res) => {
-        console.log("Modalidades:", res.data);
-        setModalidades(res.data);
-      })
+      .then((res) => setModalidades(res.data))
       .catch(() => exibirErro("Erro ao carregar modalidades."));
 
     axios
       .get("https://localhost:44328/api/v1/PersonType")
-      .then((res) => {
-        console.log("Tipos de Pessoa:", res.data);
-        setTiposPessoa(res.data);
-      })
-      .catch((erro) => exibirErro(`Erro ao carregar tipos de pessoa.`));
+      .then((res) => setTiposPessoa(res.data))
+      .catch(() => exibirErro("Erro ao carregar tipos de pessoa."));
   }, []);
 
   useEffect(() => {
@@ -64,33 +58,7 @@ export default function Simulador() {
     }
   }, [tipoPessoa]);
 
-  useEffect(() => {
-    const valorNumerico = Number(renda.replace(/\D/g, "")) / 100;
-    if (tipoPessoa && valorNumerico > 0) {
-      axios
-        .get(
-          `https://localhost:44328/api/v1/Segment/GetSegmentByPersonTypeAsync/${tipoPessoa}/${valorNumerico}`
-        )
-        .then((res) => {
-          if (!res.data || !res.data.segmento) {
-            setSegmento("");
-            exibirErro(
-              "Não foi possível determinar o segmento com base na renda informada."
-            );
-            return;
-          }
-          setSegmento(res.data.segmento);
-        })
-        .catch(() => {
-          setSegmento("");
-          exibirErro("Erro ao buscar segmento.");
-        });
-    } else {
-      setSegmento("");
-    }
-  }, [tipoPessoa, renda]);
-
-  const buscarTaxa = () => {
+  const buscarTaxa = async () => {
     const camposInvalidos = {};
     const valorNumerico = Number(renda.replace(/\D/g, "")) / 100;
 
@@ -107,18 +75,42 @@ export default function Simulador() {
 
     setMensagensCampos({});
     setCarregando(true);
+    setTaxa(null);
+    setSegmento("");
 
-    axios
-      .get(
+    try {
+      const respSegmento = await axios.get(
+        `https://localhost:44328/api/v1/Segment/GetSegmentByPersonTypeAsync/${tipoPessoa}/${valorNumerico}`
+      );
+
+      console.log("Segmento: ", respSegmento.data);
+      console.log("Segmento atual (estado):", segmento);
+
+      if (!respSegmento.data) {
+        setSegmento("");
+        exibirErro("Segmento não identificado.");
+        setCarregando(false);
+        return;
+      }
+
+      setSegmento(respSegmento.data);
+      console.log("Segmento: ", respSegmento.data);
+      console.log("Segmento atual (estado):", segmento);
+
+      const taxaResponse = await axios.get(
         `https://localhost:44328/api/v1/Rate/GetRateByAsync/${tipoPessoa}/${modalidade}/${produto}/${segmento}`
-      )
-      .then((res) => {
-        if (!res.data || typeof res.data.taxa !== "number")
-          throw new Error("Resposta inválida da API");
-        setTaxa(res.data.taxa);
-      })
-      .catch(() => exibirErro("Erro ao buscar taxa."))
-      .finally(() => setCarregando(false));
+      );
+
+      if (!taxaResponse.data || typeof taxaResponse.data !== "number") {
+        throw new Error("Resposta inválida da API");
+      }
+
+      setTaxa(taxaResponse.data);
+    } catch (error) {
+      exibirErro("Erro ao buscar taxa ou segmento.");
+    } finally {
+      setCarregando(false);
+    }
   };
 
   const exibirErro = (mensagem) => {
